@@ -38,7 +38,14 @@ public class Lox {
     List<Token> = scanner.scanTokens();
 
     for (Token token: tokens) {
-      System.out.println(token);
+      System.out.println(token;
     }
+  }
+  static void error(int line, String message) {
+    report(line, "", message);
+  }
+  private static void report(int line, String where, String message) {
+    System.err.println("[line " + line + "] Error" + where + ": " + message);
+    hadError = true;
   }
 }
