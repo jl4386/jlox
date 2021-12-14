@@ -29,7 +29,7 @@ public class Lox {
     InputStreamReader input = new InputStreamReader(System.in);
     BufferedReader reader = new BufferedReader(input);
     for(;;) {
-      System.out.println("& ");
+      System.out.print("> ");
       String line = reader.readLine();
       if (line == null) break;
       run(line);
@@ -38,10 +38,10 @@ public class Lox {
   }
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
-    List<Token> = scanner.scanTokens();
+    List<Token> tokens = scanner.scanTokens();
 
     for (Token token: tokens) {
-      System.out.println(token;
+      System.out.println(token);
     }
   }
   static void error(int line, String message) {
