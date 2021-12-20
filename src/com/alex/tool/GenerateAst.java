@@ -46,7 +46,7 @@ public class GenerateAst {
     writer.println("  interface Visitor<R> {");
     for (String type : types) {
       String typeName = type.split(":")[0].trim();
-      writer.println("  R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
+      writer.println("    R visit" + typeName + baseName + "(" + typeName + " " + baseName.toLowerCase() + ");");
     }
     writer.println("  }");
   }
@@ -60,16 +60,16 @@ public class GenerateAst {
       writer.println("      this." + name + " = " + name + ";");
     }
     writer.println("    }");
+    // Visitor pattern
+    writer.println();
+    writer.println("    @Override");
+    writer.println("    <R> R accept(Visitor<R> visitor) {");
+    writer.println("      return visitor.visit" + className + baseName + "(this);");
+    writer.println("    }");
     writer.println();
     for (String field : fields) {
       writer.println("    final " + field + ";");
     }
-    writer.println("  }");
-    // Visitor pattern
-    writer.println();
-    writer.println("  @override");
-    writer.println("  <R> R accept(Visitor<R> visitor {");
-    writer.println("    return visitor.visit" + className + baseName + "(this);");
     writer.println("  }");
   }
 }
