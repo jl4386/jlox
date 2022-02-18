@@ -1,5 +1,6 @@
 package com.alex.lox;
 
+import java.util.ArrayList;
 import java.util.List;
 // static import let user access the static members of a class directly without class name or any object
 import static com.alex.lox.TokenType.*;
@@ -14,9 +15,13 @@ public class Parser {
     this.tokens = tokens;
   }
 
-  Expr parse() {
+  List<Stmt> parse() {
     try {
-      return expression();
+      List<Stmt> statements = new ArrayList<>();
+      while(!isAtEnd()) {
+        statements.add(statement());
+      }
+      return statements;
     } catch (ParseError error) {
       return null;
     }
@@ -24,6 +29,23 @@ public class Parser {
 
   private Expr expression() {
     return equality();
+  }
+
+  private Stmt statement() {
+    if (match(PRINT)) return printStatement();
+    return expressionStatement();
+  }
+
+  private Stmt printStatement() {
+    Expr value = expression();
+    consume(SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Print(value);
+  }
+
+  private Stmt expressionStatement() {
+    Expr value = expression();
+    consume(SEMICOLON, "Expect ';' after value.");
+    return new Stmt.Expression(value);
   }
 
   private Expr equality() {
