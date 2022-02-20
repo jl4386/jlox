@@ -2,8 +2,7 @@ package com.alex.lox;
 
 import java.util.List;
 
-public class Interpreter implements Expr.Visitor<Object>,
-  Stmt.Visitor<Void> {
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
   void interpret(List<Stmt> statements) {
     try {
       for (Stmt statement : statements) {
@@ -101,10 +100,6 @@ public class Interpreter implements Expr.Visitor<Object>,
     return true;
   }
 
-  private Object evaluate(Expr expr) {
-    return expr.accept(this);
-  }
-
   private String stringify(Object object) {
     if (object == null) return "nil";
     if (object instanceof Double) {
@@ -115,6 +110,10 @@ public class Interpreter implements Expr.Visitor<Object>,
       return text;
     }
     return object.toString();
+  }
+
+  private Object evaluate(Expr expr) {
+    return expr.accept(this);
   }
 
   private void execute(Stmt stmt) {
