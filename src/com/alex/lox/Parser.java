@@ -27,10 +27,6 @@ public class Parser {
     }
   }
 
-  private Expr expression() {
-    return equality();
-  }
-
   private Stmt declaration() {
     try {
       if (match(VAR)) return varDeclaration();
@@ -66,6 +62,28 @@ public class Parser {
     Expr value = expression();
     consume(SEMICOLON, "Expect ';' after value.");
     return new Stmt.Expression(value);
+  }
+
+  private Expr expression() {
+    return assignment();
+  }
+
+  private Expr assignment() {
+    Expr expr = equality();
+
+    if (match(EQUAL)) {
+      Token equals = previous();
+      Expr value = assignment();
+
+      if (expr instanceof Expr.Variable) {
+        Token name = ((Expr.Variable) expr).name;
+        return new Expr.Assign(name, value);
+      }
+      // we don't throw it because the parser isn't in a confused state where need to go
+      // into panic mode and synchronize
+      error(equals, "Invalid assignment target.");
+    }
+    return expr;
   }
 
   private Expr equality() {
