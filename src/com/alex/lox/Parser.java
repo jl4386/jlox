@@ -1,12 +1,14 @@
 package com.alex.lox;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 // static import let user access the static members of a class directly without class name or any object
 import static com.alex.lox.TokenType.*;
 
 public class Parser {
-  private static class ParseError extends RuntimeException {}
+  private static class ParseError extends RuntimeException {
+  }
 
   private final List<Token> tokens;
   private int current = 0;
@@ -18,7 +20,7 @@ public class Parser {
   List<Stmt> parse() {
     try {
       List<Stmt> statements = new ArrayList<>();
-      while(!isAtEnd()) {
+      while (!isAtEnd()) {
         statements.add(declaration());
       }
       return statements;
@@ -52,6 +54,7 @@ public class Parser {
     if (match(PRINT)) return printStatement();
     if (match(LEFT_BRACE)) return new Stmt.Block(block());
     if (match(WHILE)) return whileStatement();
+    if (match(FOR)) return forStatement();
     return expressionStatement();
   }
 
@@ -80,6 +83,38 @@ public class Parser {
     consume(RIGHT_PAREN, "Expect ')' after condition");
     Stmt body = statement();
     return new Stmt.While(condition, body);
+  }
+
+  private Stmt forStatement() {
+    consume(LEFT_PAREN, "Expect '(' after 'for'.");
+    Stmt initializer;
+    if (match(SEMICOLON)) {
+      initializer = null;
+    } else if (match(VAR)) {
+      initializer = varDeclaration();
+    } else {
+      initializer = expressionStatement();
+    }
+    Expr condition = null;
+    if (!check(SEMICOLON)) {
+      condition = expression();
+    }
+    consume(SEMICOLON, "Expect ';' after loop condition");
+    Expr increment = null;
+    if (!check(RIGHT_PAREN)) {
+      increment = expression();
+    }
+    consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+    Stmt body = statement();
+    if (increment != null) {
+      body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+    }
+    if (condition == null) condition = new Expr.Literal(true);
+    body = new Stmt.While(condition, body);
+    if (initializer != null) {
+      body = new Stmt.Block(Arrays.asList(initializer, body));
+    }
+    return body;
   }
 
   private Stmt expressionStatement() {
@@ -254,7 +289,7 @@ public class Parser {
   private void synchronize() {
     advance();
 
-    while(!isAtEnd()) {
+    while (!isAtEnd()) {
       if (previous().type == SEMICOLON) return;
 
       switch (peek().type) {
