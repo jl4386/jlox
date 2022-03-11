@@ -10,9 +10,7 @@ abstract class Expr {
     R visitLiteralExpr(Literal expr);
     R visitLogicalExpr(Logical expr);
     R visitSetExpr(Set expr);
-
     R visitThisExpr(This expr);
-
     R visitUnaryExpr(Unary expr);
     R visitCallExpr(Call expr);
     R visitGetExpr(Get expr);
@@ -104,7 +102,6 @@ abstract class Expr {
     final Token name;
     final Expr value;
   }
-
   static class This extends Expr {
     This(Token keyword) {
       this.keyword = keyword;
@@ -117,7 +114,6 @@ abstract class Expr {
 
     final Token keyword;
   }
-
   static class Unary extends Expr {
     Unary(Token operator, Expr right) {
       this.operator = operator;
