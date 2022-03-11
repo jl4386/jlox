@@ -9,6 +9,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private final Interpreter interpreter;
   private final Stack<Map<String, Boolean>> scopes = new Stack<>();
   private FunctionType currentFunction = FunctionType.None;
+  private ClassType currentClass = ClassType.None;
 
   Resolver(Interpreter interpreter) {
     this.interpreter = interpreter;
@@ -17,8 +18,15 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private enum FunctionType {
     None,
     Function,
+    INITIALIZER,
     Method
   }
+
+  private enum ClassType {
+    None,
+    CLASS
+  }
+
 
   @Override
   public Void visitBlockStmt(Stmt.Block stmt) {
@@ -30,15 +38,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitClassStmt(Stmt.Class stmt) {
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
     declare(stmt.name);
     define(stmt.name);
     beginScope();
     scopes.peek().put("this", true);
     for (Stmt.Function method : stmt.methods) {
       FunctionType declaration = FunctionType.Method;
+      if (method.name.lexeme.equals("init")) {
+        declaration = FunctionType.INITIALIZER;
+      }
       resolveFunction(method, declaration);
     }
     endScope();
+    currentClass = enclosingClass;
     return null;
   }
 
@@ -75,7 +89,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     if (currentFunction == FunctionType.None) {
       Lox.error(stmt.keyword, "Can't return from top-level code.");
     }
-    if (stmt.value != null) resolve(stmt.value);
+    if (stmt.value != null) {
+      if (currentFunction == FunctionType.INITIALIZER) {
+        Lox.error(stmt.keyword, "Can't return a value from an initializer.");
+      }
+      resolve(stmt.value);
+    }
     return null;
   }
 
@@ -153,6 +172,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
   @Override
   public Void visitThisExpr(Expr.This expr) {
+    if (currentClass == ClassType.None) {
+      throw new RuntimeError(expr.keyword, "Can't use 'this' outside of a class.");
+    }
     resolveLocal(expr, expr.keyword);
     return null;
   }
